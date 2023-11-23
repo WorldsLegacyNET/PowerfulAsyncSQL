@@ -121,3 +121,69 @@ public class PlayerBankDatabaseAdapter implements DatabaseAdapter {
 
 }
 ```
+
+# How to access the table
+
+```java
+/*
+    The resolved table is the table which was created from your table schema.
+    It has many useful methods to interact with it
+ */
+final ResolvedTable resolvedTable = player_balance_table.resolvedTable();
+
+resolvedTable.getConnection(); // <--- Stores the current connection
+
+// An example on how to insert data into the table
+resolvedTable.insert(
+    TableRow.from(resolvedTable)
+        .add(Objects.requireNonNull(resolvedTable.getPropertyByName("UUID")), "'" + "the player uuid" + "'")
+        .add(Objects.requireNonNull(resolvedTable.getPropertyByName("Amount")), "187")
+    .build()
+);
+
+
+/*
+    The interpreted table only stores information about your table (the properties and the name and where the table schema was from)
+ */
+final DatabaseAdapterInterpreter.InterpretedTable interpretedTable = resolvedTable.asInterpretedTable();
+
+interpretedTable.getProperties(); // <--- Get all properties
+```
+
+# ConnectionBridge
+```java
+/*
+    The connection bridge is used to transfer data between the connection object and the
+    sql connection which is saved in the asynchronous connection handler
+ */
+final ConnectionBridge bridge = connection.connectionBridge();
+
+// Execute a sql query operation on the connection (query will return a result set)
+final Task queryTask = bridge.executeSQLQuery("");
+
+// Execute a sql task operation on the connection (update will not return a result set)
+final Task updateTask = bridge.executeSQLUpdate("");
+
+// The task will be executed asynchronously. The entered parameter will be returned.
+
+final Task task = bridge.executeConnectionTask(Task.create(sqlConnection -> {
+    // use of the default sqlConnection
+}));
+
+// Add a listener on when the task got executed
+task.addExecutorListener(task1 -> {
+    // ... the task got executed
+});
+
+// Access the response of the task
+
+final ResponseFuture future = task.getResponse();
+
+future.syncUntil(1, TimeUnit.SECONDS); // <-- this will block the current thread until 1 second (returns the result when received)
+future.sync(); // <-- this will block the current thread until the response was received
+
+// Create an asynchronous consumer for the result set.
+future.async(resultSet -> {
+
+});
+```
