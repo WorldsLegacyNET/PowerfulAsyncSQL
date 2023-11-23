@@ -1,0 +1,4 @@
+name: PowerfulAsyncSQL
+version: '${project.version}'
+main: net.cytocloud.pasyncsql.paper.SQLPaperMain
+api-version: 1.13
